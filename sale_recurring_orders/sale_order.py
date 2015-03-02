@@ -11,8 +11,9 @@ class sale_order(osv.osv):
         for sale_order in self.browse(cr, uid, ids, context=context):
             agreement = { 'name': sale_order.name,
                           'partner_id': sale_order.partner_id.id,
-                          'company_id': sale_order.company_id.id, 
-                          'start_date': datetime.datetime.now().strftime("%Y-%m-%d"), }
+                          'company_id': sale_order.company_id.id,
+                          'start_date':fields.date.context_today(sale_order,cr,uid,context=context),}
+                          #'start_date': datetime.datetime.now().strftime("%Y-%m-%d"), }
             agreement_id = agreement_obj.create(cr, uid, agreement, context=context)
             agreement_ids.append(agreement_id)
             for order_line in sale_order.order_line:
