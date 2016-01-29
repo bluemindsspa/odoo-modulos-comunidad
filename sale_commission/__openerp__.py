@@ -29,6 +29,7 @@
         'account',
         'product',
         'sale',
+        'ecua_sale_invoice',
         'hr',
         'stock'
     ],

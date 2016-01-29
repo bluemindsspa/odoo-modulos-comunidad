@@ -18,7 +18,7 @@
         <record id="view_order_agent_form_inherit" model="ir.ui.view">
             <field name="name">sale.agent.order.inherit.form</field>
             <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="inherit_id" ref="ecua_sale_invoice.order_form_view_inherit_ecua_sale_invoice"/>
             <field name="arch" type="xml">
                 <field name="user_id" position="after">
                        <field name="sale_agent_ids" string="Agents/Consultancy">

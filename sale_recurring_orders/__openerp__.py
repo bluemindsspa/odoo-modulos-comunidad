@@ -34,7 +34,7 @@
     """,
     'author': 'Serv. Tecnolog. Avanzados - Pedro M. Baeza',
     'website' : 'http://www.serviciosbaeza.com',
-    'depends': ['sale'],
+    'depends': ['sale','ecua_sale_invoice'],
     'data': [
         'security/ir.model.access.csv',
         'recurring_orders_data.xml', 

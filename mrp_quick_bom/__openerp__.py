@@ -36,7 +36,7 @@ This module allows quick creation of BOM and MO from selected products.
     'category': 'MRP',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['mrp'],
+    'depends' : ['mrp','ecua_sale_invoice'],
     'demo' : [],
     'data' : [
               'wizard/product_make_bom_view.xml',

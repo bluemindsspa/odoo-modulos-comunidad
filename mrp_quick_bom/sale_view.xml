@@ -7,7 +7,7 @@
         <record id="view_order_form_ext" model="ir.ui.view">
             <field name="name">view.order.form.ext</field>
             <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="inherit_id" ref="ecua_sale_invoice.order_form_view_inherit_ecua_sale_invoice"/>
             <field name="arch" type="xml">
                 <data>
                     <field name="name" position="after">
