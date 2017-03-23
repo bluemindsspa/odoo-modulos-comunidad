@@ -37,7 +37,6 @@ _column_sizes = [
     ('move', 20),
     ('journal', 12),
     ('account_code', 12),
-    ('account_analytic', 12),
     ('partner', 30),
     ('label', 45),
     ('counterpart', 30),
@@ -51,9 +50,9 @@ _column_sizes = [
 class general_ledger_xls(report_xls):
     column_sizes = [x[1] for x in _column_sizes]
     
-    def create_ws(self, _p, _xs, data, wb, context=None):
-        context = context or {}
-        ws = wb.add_sheet(context.get('name', '') or _p.report_name[:31])
+    def generate_xls_report(self, _p, _xs, data, objects, wb):
+        
+        ws = wb.add_sheet(_p.report_name[:31])
         ws.panes_frozen = True
         ws.remove_splits = True
         ws.portrait = 0 # Landscape
@@ -89,9 +88,9 @@ class general_ledger_xls(report_xls):
         c_specs = [
             ('coa', 2, 0, 'text', _('Plan de cuentas')),
             ('fy', 1, 0, 'text', _('Año Fiscal')),
-            ('df', 3, 0, 'text', _p.filter_form(data) == 'filter_date' and _('Filtro por Fechas') or _('Filtro por periodos')),
-            ('af', 1, 0, 'text', _('Filtro Cuentas')),
-            ('tm', 2, 0, 'text',  _('Movimientos')),
+            ('df', 3, 0, 'text', _p.filter_form(data) == 'filter_date' and _('Filtros por fecha') or _('Filtros por periodo')),
+            ('af', 1, 0, 'text', _('Filtro de cuentas')),
+            ('tm', 2, 0, 'text',  _('Movimientos destinos')),
             ('ib', 2, 0, 'text',  _('Balance Inicial')),
 
         ]       
@@ -125,10 +124,7 @@ class general_ledger_xls(report_xls):
         row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style_center)  
         ws.set_horz_split_pos(row_pos)   
         row_pos += 1
-        return row_pos, row_data, ws
-    
-    def generate_xls_report(self, _p, _xs, data, objects, wb):
-        row_pos, row_data, ws = self.create_ws(_p, _xs, data, wb)
+
         # Column Title Row
         cell_format = _xs['bold']
         c_title_cell_style = xlwt.easyxf(cell_format)
@@ -150,15 +146,14 @@ class general_ledger_xls(report_xls):
         c_specs = [
             ('date', 1, 0, 'text', _('Fecha'), None, c_hdr_cell_style),
             ('period', 1, 0, 'text', _('Periodo'), None, c_hdr_cell_style),
-            ('move', 1, 0, 'text', _('Asiento'), None, c_hdr_cell_style),
+            ('move', 1, 0, 'text', _('Entrada'), None, c_hdr_cell_style),
             ('journal', 1, 0, 'text', _('Diario'), None, c_hdr_cell_style),
             ('account_code', 1, 0, 'text', _('Cuenta'), None, c_hdr_cell_style),
-            ('account_analytic', 1, 0, 'text', _('Centro de Costo'), None, c_hdr_cell_style),
-            ('partner', 1, 0, 'text', _('Empresa'), None, c_hdr_cell_style),
-            ('label', 1, 0, 'text', _('Descripcion'), None, c_hdr_cell_style),
+            ('partner', 1, 0, 'text', _('Asociado'), None, c_hdr_cell_style),
+            ('label', 1, 0, 'text', _('Referencia'), None, c_hdr_cell_style),
             ('counterpart', 1, 0, 'text', _('Contrapartida'), None, c_hdr_cell_style),
-            ('debit', 1, 0, 'text', _('Debito'), None, c_hdr_cell_style_right),
-            ('credit', 1, 0, 'text', _('Credito'), None, c_hdr_cell_style_right),
+            ('debit', 1, 0, 'text', _('Debe'), None, c_hdr_cell_style_right),
+            ('credit', 1, 0, 'text', _('Haber'), None, c_hdr_cell_style_right),
             ('cumul_bal', 1, 0, 'text', _('Cumul. Bal.'), None, c_hdr_cell_style_right),                    
         ]  
         if _p.amount_currency(data):
@@ -177,15 +172,8 @@ class general_ledger_xls(report_xls):
         ll_cell_style_decimal = xlwt.easyxf(ll_cell_format + _xs['right'], num_format_str = report_xls.decimal_format)
         
         cnt = 0
-        sheet_number = 1
         for account in objects:
-            if len(account.ledger_lines) >= 65536:
-                raise ValueError("La cuenta %s tiene mas 65536 registros y es imposible presentarla."%(account.code + ' - ' + account.name))
-            elif (row_pos + len(account.ledger_lines)) >= 65536:
-                ws.name = _p.report_name[:31] + ' ' + str(sheet_number)
-                sheet_number += 1
-                row_pos, row_data, ws = \
-                self.create_ws(_p, _xs, data, wb, context={'name': _p.report_name[:31] + ' ' + str(sheet_number)})
+
             display_initial_balance = account.init_balance and (account.init_balance.get('debit', 0.0) != 0.0 or account.init_balance.get('credit', 0.0) != 0.0)
             display_ledger_lines = account.ledger_lines
 
@@ -212,7 +200,7 @@ class general_ledger_xls(report_xls):
                     debit_cell = rowcol_to_cell(row_pos, 8)                
                     credit_cell = rowcol_to_cell(row_pos, 9)
                     bal_formula = debit_cell + '-' + credit_cell                              
-                    c_specs = [('empty%s' %x, 1, 0, 'text', None) for x in range(7)]
+                    c_specs = [('empty%s' %x, 1, 0, 'text', None) for x in range(6)]
                     c_specs += [
                         ('init_bal', 1, 0, 'text', _('Balance Inicial')),
                         ('counterpart', 1, 0, 'text', None),
@@ -234,9 +222,17 @@ class general_ledger_xls(report_xls):
                     cumul_credit += line.get('credit') or 0.0
                     cumul_balance_curr += line.get('amount_currency') or 0.0
                     cumul_balance += line.get('balance') or 0.0
-                    label_elements = [line.get('lname') or '']
+
+                    #if something in lref, add it
+                    label_elements = [line.get('lref') or '']
+
+                    # **Se comenta en acaso se necesitan hacer cambios de condiciones**
+                    label_elements.append(line.get('lname') or '')
+
                     if line.get('invoice_number'):
-                      label_elements.append("(%s)" % (line['invoice_number'],))
+                       label_elements.append("(%s)" % (line['invoice_number'],))
+
+                    #Here we join the three things: line['lref'], line['lname'], and line['invoice_number'].
                     label = ' '.join(label_elements)
 
                     if line.get('ldate'):
@@ -252,7 +248,6 @@ class general_ledger_xls(report_xls):
                         ('move', 1, 0, 'text', line.get('move_name') or ''),
                         ('journal', 1, 0, 'text', line.get('jcode') or ''),
                         ('account_code', 1, 0, 'text', account.code),
-                        ('account_analytic', 1, 0, 'text', line.get('account_analytic_name') or ''),
                         ('partner', 1, 0, 'text', line.get('partner_name') or ''),
                         ('label', 1, 0, 'text', label),
                         ('counterpart', 1, 0, 'text', line.get('counterparts') or ''),
@@ -268,18 +263,18 @@ class general_ledger_xls(report_xls):
                     row_data = self.xls_row_template(c_specs, [x[0] for x in c_specs])
                     row_pos = self.xls_write_row(ws, row_pos, row_data, ll_cell_style) 
                 
-                debit_start = rowcol_to_cell(row_start, 9)                
-                debit_end = rowcol_to_cell(row_pos-1, 9)
+                debit_start = rowcol_to_cell(row_start, 8)                
+                debit_end = rowcol_to_cell(row_pos-1, 8)
                 debit_formula = 'SUM(' + debit_start + ':' + debit_end + ')'
-                credit_start = rowcol_to_cell(row_start, 10)                
-                credit_end = rowcol_to_cell(row_pos-1, 10)
+                credit_start = rowcol_to_cell(row_start, 9)                
+                credit_end = rowcol_to_cell(row_pos-1, 9)
                 credit_formula = 'SUM(' + credit_start + ':' + credit_end + ')'
-                balance_debit = rowcol_to_cell(row_pos, 9)                
-                balance_credit = rowcol_to_cell(row_pos, 10)
+                balance_debit = rowcol_to_cell(row_pos, 8)                
+                balance_credit = rowcol_to_cell(row_pos, 9)
                 balance_formula = balance_debit + '-' + balance_credit
                 c_specs = [
-                    ('acc_title', 8, 0, 'text', ' - '.join([account.code, account.name])),
-                    ('cum_bal', 1, 0, 'text', _('Balance Acumulado en la Cuenta'), None, c_hdr_cell_style_right),
+                    ('acc_title', 7, 0, 'text', ' - '.join([account.code, account.name])),
+                    ('cum_bal', 1, 0, 'text', _('Saldo acumulado en la cuenta'), None, c_hdr_cell_style_right),
                     ('debit', 1, 0, 'number', None, debit_formula, c_hdr_cell_style_decimal),             
                     ('credit', 1, 0, 'number', None, credit_formula, c_hdr_cell_style_decimal),             
                     ('balance', 1, 0, 'number', None, balance_formula, c_hdr_cell_style_decimal),                       

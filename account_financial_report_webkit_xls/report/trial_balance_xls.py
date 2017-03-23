@@ -32,29 +32,29 @@ _logger = logging.getLogger(__name__)
 
 class trial_balance_xls(report_xls):
     column_sizes = [12,60,17,17,17,17,17,17]
-    
+
     def generate_xls_report(self, _p, _xs, data, objects, wb):
-       
+
         ws = wb.add_sheet(_p.report_name[:31])
         ws.panes_frozen = True
         ws.remove_splits = True
         ws.portrait = 0 # Landscape
         ws.fit_width_to_pages = 1
         row_pos = 0
-        
+
         # set print header/footer
         ws.header_str = self.xls_headers['standard']
         ws.footer_str = self.xls_footers['standard']
-        
+
         # cf. account_report_trial_balance.mako  
         initial_balance_text = {'initial_balance': _('Computed'), 'opening_balance': _('Opening Entries'), False: _('No')}
-        
+
         # Title
         cell_style = xlwt.easyxf(_xs['xls_title'])
         report_name =  ' - '.join([_p.report_name.upper(), _p.company.partner_id.name, _p.company.currency_id.name])
         c_specs = [
             ('report_name', 1, 0, 'text', report_name),
-        ]       
+        ]
         row_data = self.xls_row_template(c_specs, [x[0] for x in c_specs])
         row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style)
 
@@ -62,20 +62,20 @@ class trial_balance_xls(report_xls):
         c_sizes = self.column_sizes
         c_specs = [('empty%s'%i, 1, c_sizes[i], 'text', None) for i in range(0,len(c_sizes))]
         row_data = self.xls_row_template(c_specs, [x[0] for x in c_specs])
-        row_pos = self.xls_write_row(ws, row_pos, row_data, set_column_size=True)        
-        
+        row_pos = self.xls_write_row(ws, row_pos, row_data, set_column_size=True)
+
         # Header Table
         cell_format = _xs['bold'] + _xs['fill_blue'] + _xs['borders_all']
         cell_style = xlwt.easyxf(cell_format)
         cell_style_center = xlwt.easyxf(cell_format + _xs['center'])
         c_specs = [
             ('fy', 1, 0, 'text', _('Año Fiscal')),
-            ('af', 2, 0, 'text', _('Filtro Cuentas')),
-            ('df', 1, 0, 'text', _p.filter_form(data) == 'filter_date' and _('Filtro Fechas') or _('Filtro Periodos')),
-            ('tm', 2, 0, 'text',  _('Movimientos Contables'), None, cell_style_center),
+            ('af', 2, 0, 'text', _('Filtro de cuentas')),
+            ('df', 1, 0, 'text', _p.filter_form(data) == 'filter_date' and _('Filtros por fecha') or _('Filtros por periodo')),
+            ('tm', 2, 0, 'text',  _('Movimientos destinos'), None, cell_style_center),
             ('ib', 1, 0, 'text',  _('Balance Inicial'), None, cell_style_center),
-            ('coa', 1, 0, 'text', _('Plan de Cuentas'), None, cell_style_center),
-        ]       
+            ('coa', 1, 0, 'text', _('Chart of Account'), None, cell_style_center),
+        ]
         row_data = self.xls_row_template(c_specs, [x[0] for x in c_specs])
         row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style)
 
@@ -88,7 +88,7 @@ class trial_balance_xls(report_xls):
         ]
         df = _('From') + ': '
         if _p.filter_form(data) == 'filter_date':
-            df += _p.start_date if _p.start_date else u'' 
+            df += _p.start_date if _p.start_date else u''
         else:
             df += _p.start_period.name if _p.start_period else u''
         df += ' ' + _('\nTo') + ': '
@@ -101,33 +101,33 @@ class trial_balance_xls(report_xls):
             ('tm', 2, 0, 'text', _p.display_target_move(data), None, cell_style_center),
             ('ib', 1, 0, 'text', initial_balance_text[_p.initial_balance_mode], None, cell_style_center),
             ('coa', 1, 0, 'text', _p.chart_account.name, None, cell_style_center),
-        ]       
+        ]
         row_data = self.xls_row_template(c_specs, [x[0] for x in c_specs])
-        row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style)  
- 
+        row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style)
+
         # comparison header table
         if _p.comparison_mode in ('single', 'multiple'):
             row_pos += 1
             cell_format_ct = _xs['bold'] + _xs['fill_blue'] + _xs['borders_all']
             cell_style_ct = xlwt.easyxf(cell_format_ct)
-            c_specs = [('ct', 8, 0, 'text', _('Comparisons'))]       
+            c_specs = [('ct', 8, 0, 'text', _('Comparisons'))]
             row_data = self.xls_row_template(c_specs, [x[0] for x in c_specs])
-            row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style_ct)            
+            row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style_ct)
             cell_style_center = xlwt.easyxf(cell_format)
             for index, params in enumerate(_p.comp_params):
                 c_specs = [('c', 3, 0, 'text', _('Comparison') + str(index + 1) + ' (C' + str(index + 1) + ')')]
                 if params['comparison_filter'] == 'filter_date':
-                    c_specs += [('f', 3, 0, 'text', _('Dates Filter') + ': ' + _p.formatLang(params['start'], date=True) + ' - ' + _p.formatLang(params['stop'], date=True))]
+                    c_specs += [('f', 3, 0, 'text', _('Filtros por fecha') + ': ' + _p.formatLang(params['start'], date=True) + ' - ' + _p.formatLang(params['stop'], date=True))]
                 elif params['comparison_filter'] == 'filter_period':
-                    c_specs += [('f', 3, 0, 'text', _('Periods Filter') + ': ' + params['start'].name + ' - ' + params['stop'].name)]
+                    c_specs += [('f', 3, 0, 'text', _('Filtros por periodo') + ': ' + params['start'].name + ' - ' + params['stop'].name)]
                 else:
-                    c_specs += [('f', 3, 0, 'text', _('Fiscal Year') + ': ' + params['fiscalyear'].name)]
-                c_specs += [('ib', 2, 0, 'text', _('Initial Balance') + ': ' + initial_balance_text[params['initial_balance_mode']])]
+                    c_specs += [('f', 3, 0, 'text', _('Año Fiscal') + ': ' + params['fiscalyear'].name)]
+                c_specs += [('ib', 2, 0, 'text', _('Balance Inicial') + ': ' + initial_balance_text[params['initial_balance_mode']])]
                 row_data = self.xls_row_template(c_specs, [x[0] for x in c_specs])
                 row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style_center)
 
         row_pos += 1
- 
+
         # Column Header Row
         cell_format = _xs['bold'] + _xs['fill_blue'] + _xs['borders_all'] + _xs['wrap'] + _xs['top']
         cell_style = xlwt.easyxf(cell_format)
@@ -139,24 +139,18 @@ class trial_balance_xls(report_xls):
             account_span = _p.initial_balance_mode and 2 or 3
         c_specs = [
             ('code', 1, 0, 'text', _('Code')),
-            ('account', account_span, 0, 'text', _('Account')),
+            ('account', account_span, 0, 'text', _('Cuenta')),
         ]
         if _p.comparison_mode == 'no_comparison':
             if _p.initial_balance_mode:
-                c_specs += [('init_bal', 1, 0, 'text', _('Initial Balance'), None, cell_style_right)]
+                c_specs += [('init_bal', 1, 0, 'text', _('Balance Inicial'), None, cell_style_right)]
             c_specs += [
-                ('debit', 1, 0, 'text', _('Debit'), None, cell_style_right),
-                ('credit', 1, 0, 'text', _('Credit'), None, cell_style_right),
-            ]       
+                ('debit', 1, 0, 'text', _('Debe'), None, cell_style_right),
+                ('credit', 1, 0, 'text', _('Haber'), None, cell_style_right),
+            ]
 
         if _p.comparison_mode == 'no_comparison' or not _p.fiscalyear:
             c_specs += [('balance', 1, 0, 'text', _('Balance'), None, cell_style_right)]
-            c_specs += [('nivel1', 1, 0, 'text', _('Nivel 1'), None, cell_style_right)]
-            c_specs += [('nivel2', 1, 0, 'text', _('Nivel 2'), None, cell_style_right)]
-            c_specs += [('nivel3', 1, 0, 'text', _('Nivel 3'), None, cell_style_right)]
-            c_specs += [('nivel4', 1, 0, 'text', _('Nivel 4'), None, cell_style_right)]
-            c_specs += [('nivel5', 1, 0, 'text', _('Nivel 5'), None, cell_style_right)]
-            c_specs += [('nivel6', 1, 0, 'text', _('Nivel 6'), None, cell_style_right)]
         else:
             c_specs += [('balance_fy', 1, 0, 'text', _('Balance %s') % _p.fiscalyear.name, None, cell_style_right)]
         if _p.comparison_mode in ('single', 'multiple'):
@@ -169,15 +163,15 @@ class trial_balance_xls(report_xls):
                     c_specs += [
                         ('diff', 1, 0, 'text', _('Difference'), None, cell_style_right),
                         ('diff_percent', 1, 0, 'text', _('% Difference'), None, cell_style_center),
-                    ]       
-        c_specs += [('type', 1, 0, 'text', _('Nivel'), None, cell_style_center)]             
+                    ]
+        c_specs += [('type', 1, 0, 'text', _('Type'), None, cell_style_center)]
         row_data = self.xls_row_template(c_specs, [x[0] for x in c_specs])
         row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style)
-        ws.set_horz_split_pos(row_pos) 
-         
+        ws.set_horz_split_pos(row_pos)
+
         last_child_consol_ids = []
         last_level = False
-        
+
         # cell styles for account data
         view_cell_format = _xs['bold'] + _xs['fill'] + _xs['borders_all']
         view_cell_style = xlwt.easyxf(view_cell_format)
@@ -188,7 +182,7 @@ class trial_balance_xls(report_xls):
         regular_cell_style = xlwt.easyxf(regular_cell_format)
         regular_cell_style_center = xlwt.easyxf(regular_cell_format + _xs['center'])
         regular_cell_style_decimal = xlwt.easyxf(regular_cell_format + _xs['right'], num_format_str = report_xls.decimal_format)
-        regular_cell_style_pct = xlwt.easyxf(regular_cell_format + _xs['center'], num_format_str = '0')        
+        regular_cell_style_pct = xlwt.easyxf(regular_cell_format + _xs['center'], num_format_str = '0')
 
         for current_account in objects:
 
@@ -205,9 +199,9 @@ class trial_balance_xls(report_xls):
                 cell_style_center = regular_cell_style_center
                 cell_style_decimal = regular_cell_style_decimal
                 cell_style_pct = regular_cell_style_pct
-    
+
             comparisons = current_account.comparisons
-    
+
             if current_account.id in last_child_consol_ids:
                 # current account is a consolidation child of the last account: use the level of last account
                 level = last_level
@@ -218,79 +212,35 @@ class trial_balance_xls(report_xls):
                 level_class = "account_level_%s" % (level,)
                 last_child_consol_ids = [child_consol_id.id for child_consol_id in current_account.child_consol_ids]
                 last_level = current_account.level
- 
+
             c_specs = [
                 ('code', 1, 0, 'text', current_account.code),
                 ('account', account_span, 0, 'text', current_account.name),
             ]
             if _p.comparison_mode == 'no_comparison':
-                
-                debit_cell = rowcol_to_cell(row_pos, 4)                
+
+                debit_cell = rowcol_to_cell(row_pos, 4)
                 credit_cell = rowcol_to_cell(row_pos, 5)
                 bal_formula = debit_cell + '-' + credit_cell
-                
+
                 if _p.initial_balance_mode:
                     init_cell = rowcol_to_cell(row_pos, 3)
-                    debit_cell = rowcol_to_cell(row_pos, 4)                
+                    debit_cell = rowcol_to_cell(row_pos, 4)
                     credit_cell = rowcol_to_cell(row_pos, 5)
-                    bal_formula = init_cell + '+' + debit_cell + '-' + credit_cell
+                    if current_account.code[0] in ['2','3','4']:
+                       bal_formula = init_cell + '-' + debit_cell + '+' + credit_cell
+                    else:
+                       bal_formula = init_cell + '+' + debit_cell + '-' + credit_cell
                     c_specs += [('init_bal', 1, 0, 'number', current_account.init_balance, None, cell_style_decimal)]
                 c_specs += [
                     ('debit', 1, 0, 'number', current_account.debit, None, cell_style_decimal),
                     ('credit', 1, 0, 'number', current_account.credit, None, cell_style_decimal),
-                    
-                ]       
+                ]
                 c_specs += [('balance', 1, 0, 'number', None, bal_formula, cell_style_decimal)]
-                if current_account.level:
-                    seteo='prueba'
-                    if current_account.level == 1 :
-                        c_specs += [('nivel1', 1, 0, 'number', None, bal_formula, cell_style_decimal)]
-                        c_specs += [('nivel2', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel3', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel4', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel5', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel6', 1, 0, 'text', None, None, cell_style_center)]
-                    if current_account.level == 2 :
-                        c_specs += [('nivel1', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel2', 1, 0, 'number', None, bal_formula, cell_style_decimal)]
-                        c_specs += [('nivel3', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel4', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel5', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel6', 1, 0, 'text', None, None, cell_style_center)]
-                    if current_account.level == 3 :
-                        c_specs += [('nivel1', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel2', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel3', 1, 0, 'number', None, bal_formula, cell_style_decimal)]
-                        c_specs += [('nivel4', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel5', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel6', 1, 0, 'text', None, None, cell_style_center)]
-                    if current_account.level == 4 :
-                        c_specs += [('nivel1', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel2', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel3', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel4', 1, 0, 'number', None, bal_formula, cell_style_decimal)]
-                        c_specs += [('nivel5', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel6', 1, 0, 'text', None, None, cell_style_center)]
-                    if current_account.level == 5 :
-                        c_specs += [('nivel1', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel2', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel3', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel4', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel5', 1, 0, 'number', None, bal_formula, cell_style_decimal)]
-                        c_specs += [('nivel6', 1, 0, 'text', None, None, cell_style_center)]
-                    if current_account.level >= 6 :
-                        c_specs += [('nivel1', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel2', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel3', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel4', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel5', 1, 0, 'text', None, None, cell_style_center)]
-                        c_specs += [('nivel6', 1, 0, 'number', None, bal_formula, cell_style_decimal)]
-                      #  c_specs += [('nivel1', 1, 0, 'number', None, 0.00, cell_style_decimal)]
-                      #  c_specs += [('nivel2', 1, 0, 'number', None, 0.00, cell_style_decimal)]
             else:
                 c_specs += [('balance', 1, 0, 'number', current_account.balance, None, cell_style_decimal)]
-                
-            if _p.comparison_mode in ('single', 'multiple'):                
+
+            if _p.comparison_mode in ('single', 'multiple'):
                 c = 1
                 for comp_account in comparisons:
                     c_specs += [('balance_%s' %c, 1, 0, 'number', comp_account['balance'], None, cell_style_decimal)]
@@ -299,12 +249,12 @@ class trial_balance_xls(report_xls):
                         c_specs += [
                             ('diff', 1, 0, 'number', comp_account['diff'], None, cell_style_decimal),
                             ('diff_percent', 1, 0, 'number', comp_account['percent_diff'] and comp_account['percent_diff'] or 0, None, cell_style_pct),
-                        ]      
-                        
-            c_specs += [('type', 1, 0, 'number', current_account.level, None, cell_style_center)]          
+                        ]
+
+            c_specs += [('type', 1, 0, 'text', current_account.type, None, cell_style_center)]
             row_data = self.xls_row_template(c_specs, [x[0] for x in c_specs])
             row_pos = self.xls_write_row(ws, row_pos, row_data, row_style=cell_style)
-            
+
 trial_balance_xls('report.account.account_report_trial_balance_xls', 'account.account',
     parser=TrialBalanceWebkit)
 

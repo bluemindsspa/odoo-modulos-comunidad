@@ -28,17 +28,29 @@ class trial_balance_wizard(osv.osv_memory):
     _inherit = 'trial.balance.webkit'
        
     def xls_export(self, cr, uid, ids, context=None):
-        return self.check_report(cr, uid, ids, context=context)
+        res= self.check_report(cr, uid, ids, context=context)
+        return res
 
     def _print_report(self, cr, uid, ids, data, context=None):
         context = context or {}
         if context.get('xls_export'):
             # we update form with display account value
             data = self.pre_print_report(cr, uid, ids, data, context=context)
+            cuenta=self.pool.get('trial.balance.webkit').browse(cr, uid,ids, context=None)
+            data['form']['type'] = cuenta[0].type
+            data['form']['niveles']=cuenta[0].niveles
+
+
             return {'type': 'ir.actions.report.xml',
                     'report_name': 'account.account_report_trial_balance_xls',
                     'datas': data}
         else:
             return super(trial_balance_wizard, self)._print_report(cr, uid, ids, data, context=context)
+
+    # def check_report(self, cr, uid, ids, context=None):
+    #     res = {}
+    #     # super('accounting.report', self).check_report(cr, uid, ids, context)
+    #     # nueva_var=res['datas']['form']['comparison_context']
+    #     return super('accounting.report', self).check_report(cr, uid, ids, context)
     
 trial_balance_wizard()    

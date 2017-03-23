@@ -116,6 +116,9 @@ class DocumentConverter:
         try:
             desktop = self._context.ServiceManager.createInstanceWithContext("com.sun.star.frame.Desktop", self._context)
         except UnknownPropertyException:
+            #TODO ALTATEC: REVIEW THIS PATCH: Patch by Raphael Valyi 19/2/2014
+            self.localContext = uno.getComponentContext()
+            self.serviceManager = self.localContext.ServiceManager
             self._context = self._resolver.resolve("uno:socket,host=%s,port=%s;urp;StarOffice.ComponentContext" % (self._host, self._port))
             desktop = self._context.ServiceManager.createInstanceWithContext("com.sun.star.frame.Desktop", self._context)
         inputStream = self.serviceManager.createInstanceWithContext("com.sun.star.io.SequenceInputStream", self.localContext)
