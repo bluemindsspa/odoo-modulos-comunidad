@@ -32,23 +32,23 @@ _logger = logging.getLogger(__name__)
 
 class trial_balance_xls(report_xls):
     column_sizes = [12,60,17,17,17,17,17,17]
-
+    
     def generate_xls_report(self, _p, _xs, data, objects, wb):
-
+       
         ws = wb.add_sheet(_p.report_name[:31])
         ws.panes_frozen = True
         ws.remove_splits = True
         ws.portrait = 0 # Landscape
         ws.fit_width_to_pages = 1
         row_pos = 0
-
+        
         # set print header/footer
         ws.header_str = self.xls_headers['standard']
         ws.footer_str = self.xls_footers['standard']
-
+        
         # cf. account_report_trial_balance.mako  
         initial_balance_text = {'initial_balance': _('Computed'), 'opening_balance': _('Opening Entries'), False: _('No')}
-
+        
         # Title
         cell_style = xlwt.easyxf(_xs['xls_title'])
         report_name =  ' - '.join([_p.report_name.upper(), _p.company.partner_id.name, _p.company.currency_id.name])

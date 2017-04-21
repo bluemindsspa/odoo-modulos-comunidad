@@ -243,11 +243,6 @@ class CommonBalanceReportHeaderWebkit(CommonReportHeaderWebkit):
         niveles_in=""
         niveles_out=""
 
-
-
-
-
-
         start_period, stop_period, start, stop = \
             self._get_start_stop_for_filter(main_filter, fiscalyear, start_date, stop_date, start_period, stop_period)
 

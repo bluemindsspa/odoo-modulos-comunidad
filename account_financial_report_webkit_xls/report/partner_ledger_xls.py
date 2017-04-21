@@ -37,6 +37,7 @@ _column_sizes = [
     ('move', 20),
     ('journal', 12),
     ('partner', 30),
+    ('account_analytic', 12),
     ('label', 58),
     ('rec', 12),
     ('debit', 15), 
@@ -88,7 +89,7 @@ class partner_ledger_xls(report_xls):
         cell_style = xlwt.easyxf(cell_format)
         cell_style_center = xlwt.easyxf(cell_format + _xs['center'])
         c_specs = [
-            ('coa', 2, 0, 'text', _('Chart of Account')),
+            ('coa', 2, 0, 'text', _('Plan de Cuentas')),
             ('fy', 1, 0, 'text', _('Año Fiscal')),
             ('df', 2, 0, 'text', _p.filter_form(data) == 'filter_date' and _('Filtros por fecha') or _('Filtros por periodo')),
             ('af', 1, 0, 'text', _('Filtro de cuentas')),
@@ -163,16 +164,17 @@ class partner_ledger_xls(report_xls):
         c_part_cell_style = xlwt.easyxf(cell_format)
         
         c_specs = [
-            ('date', 1, 0, 'text', _('Date'), None, c_hdr_cell_style),
-            ('period', 1, 0, 'text', _('Period'), None, c_hdr_cell_style),
-            ('move', 1, 0, 'text', _('Entry'), None, c_hdr_cell_style),
-            ('journal', 1, 0, 'text', _('Journal'), None, c_hdr_cell_style),
-            ('partner', 1, 0, 'text', _('Partner'), None, c_hdr_cell_style),
-            ('label', 1, 0, 'text', _('Label'), None, c_hdr_cell_style),
+            ('date', 1, 0, 'text', _('Fecha'), None, c_hdr_cell_style),
+            ('period', 1, 0, 'text', _('Periodo'), None, c_hdr_cell_style),
+            ('move', 1, 0, 'text', _('Asiento'), None, c_hdr_cell_style),
+            ('journal', 1, 0, 'text', _('Diario'), None, c_hdr_cell_style),
+            ('partner', 1, 0, 'text', _('Empresa'), None, c_hdr_cell_style),
+            ('account_analytic', 1, 0, 'text', _('Centro de Costo'), None, c_hdr_cell_style),
+            ('label', 1, 0, 'text', _('Descripcion'), None, c_hdr_cell_style),
             ('rec', 1, 0, 'text', _('Rec.'), None, c_hdr_cell_style),
             ('debit', 1, 0, 'text', _('Debe'), None, c_hdr_cell_style_right),
             ('credit', 1, 0, 'text', _('Haber'), None, c_hdr_cell_style_right),
-            ('cumul_bal', 1, 0, 'text', _('Cumul. Bal.'), None, c_hdr_cell_style_right),                    
+            ('cumul_bal', 1, 0, 'text', _('Bal. Acum.'), None, c_hdr_cell_style_right),                    
         ]
         if _p.amount_currency(data):
             c_specs += [
@@ -237,12 +239,12 @@ class partner_ledger_xls(report_xls):
                         cumul_balance += part_cumul_balance
                         cumul_balance_curr += part_cumul_balance_curr
 
-                        debit_cell = rowcol_to_cell(row_pos, 7)                
-                        credit_cell = rowcol_to_cell(row_pos, 8)
+                        debit_cell = rowcol_to_cell(row_pos, 8)                
+                        credit_cell = rowcol_to_cell(row_pos, 9)
                         init_bal_formula = debit_cell + '-' + credit_cell   
     
                         ################## Print row 'Initial Balance' by partner #################                            
-                        c_specs = [('empty%s' %x, 1, 0, 'text', None) for x in range(5)]
+                        c_specs = [('empty%s' %x, 1, 0, 'text', None) for x in range(6)]
                         c_specs += [
                             ('init_bal', 1, 0, 'text', _('Balance Inicial')),
                             ('rec', 1, 0, 'text', None),
@@ -270,11 +272,11 @@ class partner_ledger_xls(report_xls):
                         cumul_balance += line.get('balance') or 0.0
                         
                         if init_line or row_pos > row_start_partner:
-                            cumbal_formula = rowcol_to_cell(row_pos-1, 9) + '+'
+                            cumbal_formula = rowcol_to_cell(row_pos-1, 10) + '+'
                         else:
                             cumbal_formula = ''
-                        debit_cell = rowcol_to_cell(row_pos, 7)                
-                        credit_cell = rowcol_to_cell(row_pos, 8)
+                        debit_cell = rowcol_to_cell(row_pos, 8)                
+                        credit_cell = rowcol_to_cell(row_pos, 9)
                         cumbal_formula += debit_cell + '-' + credit_cell   
                         ################## Print row ledger line data #################
                         
@@ -291,6 +293,7 @@ class partner_ledger_xls(report_xls):
                             ('move', 1, 0, 'text', line.get('move_name') or ''),
                             ('journal', 1, 0, 'text', line.get('jcode') or ''),
                             ('partner', 1, 0, 'text', line.get('partner_name') or ''),
+                            ('account_analytic', 1, 0, 'text', line.get('account_analytic_name') or ''),
                             ('label', 1, 0, 'text', label),
                             ('rec_name', 1, 0, 'text', line.get('rec_name') or ''),
                             ('debit', 1, 0, 'number', line.get('debit'), None, ll_cell_style_decimal),
@@ -307,21 +310,21 @@ class partner_ledger_xls(report_xls):
                     #end for line
 
                     ################## Print row Cumulated Balance by partner #################  
-                    debit_partner_start = rowcol_to_cell(row_start_partner, 7)                
-                    debit_partner_end = rowcol_to_cell(row_pos-1, 7)
+                    debit_partner_start = rowcol_to_cell(row_start_partner, 8)                
+                    debit_partner_end = rowcol_to_cell(row_pos-1, 8)
                     debit_partner_total = 'SUM(' + debit_partner_start + ':' + debit_partner_end + ')'
-                      
-                    credit_partner_start = rowcol_to_cell(row_start_partner, 8)                
-                    credit_partner_end = rowcol_to_cell(row_pos-1, 8)
+                    
+                    credit_partner_start = rowcol_to_cell(row_start_partner, 9)                
+                    credit_partner_end = rowcol_to_cell(row_pos-1, 9)
                     credit_partner_total = 'SUM(' + credit_partner_start + ':' + credit_partner_end + ')'
                       
-                    bal_partner_debit = rowcol_to_cell(row_pos, 7)                
-                    bal_partner_credit = rowcol_to_cell(row_pos, 8)
+                    bal_partner_debit = rowcol_to_cell(row_pos, 8)                
+                    bal_partner_credit = rowcol_to_cell(row_pos, 9)
                     bal_partner_total = bal_partner_debit + '-' + bal_partner_credit                 
                                          
-                    c_specs = [('empty%s' %x, 1, 0, 'text', None) for x in range(5)]
+                    c_specs = [('empty%s' %x, 1, 0, 'text', None) for x in range(6)]
                     c_specs += [
-                         ('init_bal', 1, 0, 'text', _('Cumulated balance on Partner')),
+                         ('init_bal', 1, 0, 'text', _('Balance Acumulado por Empresa')),
                          ('rec', 1, 0, 'text', None),
                          ('debit', 1, 0, 'number', None, debit_partner_total, c_cumul_cell_style_decimal),  
                          ('credit', 1, 0, 'number', None, credit_partner_total, c_cumul_cell_style_decimal),  
@@ -342,9 +345,9 @@ class partner_ledger_xls(report_xls):
                     account_balance_cumul_curr += cumul_balance_curr                                 
                         
                 ################## Print row Cumulated Balance by account #################   
-                c_specs = [('acc_title', 5, 0, 'text', ' - '.join([account.code, account.name])),      ]
+                c_specs = [('acc_title', 6, 0, 'text', ' - '.join([account.code, account.name])),      ]
                 c_specs += [
-                    ('label', 1, 0, 'text', _('Cumulated balance on Account')),
+                    ('label', 1, 0, 'text', _('Balance Acumulado por Cuenta')),
                     ('rec', 1, 0, 'text', None),
                     ('debit', 1, 0, 'number', account_total_debit, None, account_cell_style_decimal),
                     ('credit', 1, 0, 'number', account_total_credit, None, account_cell_style_decimal),
