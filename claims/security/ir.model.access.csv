@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+claim_line_user_rights,model_user,model_claim_line,group_user,1,1,0,0
+claim_user_rights,model_user,model_crm_claim,group_user,1,1,0,0
+account_invoice_line_user_rights,model_user,model_account_invoice_line,group_user,1,1,0,0
+account_invoice_user_rights,model_user,model_account_invoice_line,group_user,1,1,0,0
+substate_user_rights,model_user,model_substate_substate,group_user,1,1,0,0
+
+
+
+
+
+

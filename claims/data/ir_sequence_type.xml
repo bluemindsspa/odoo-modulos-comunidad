@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+   <data noupdate="1">
+      <record model="ir.sequence" id="claim_liner_sequence">
+         <field name="name">claim_liner_sequence</field>
+         <field name="code">claim.line</field>
+         <field name="prefix">1</field>
+         <field name="padding">10</field>
+      </record>
+   </data>
+</openerp>
+

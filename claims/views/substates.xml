@@ -1,0 +1,16 @@
+<odoo>
+    <data>
+        <record id="act_crm_claim_substates" model="ir.actions.act_window">
+        <field name="name">Claim line substates</field>
+        <field name="res_model">substate.substate</field>
+        <field name="view_type">form</field>
+    </record>
+
+    <menuitem
+            name="Claim line substates"
+            id="menu_crm_case_claims_claim_line_substates"
+            parent="menu_config_claim"
+            action="act_crm_claim_substates"
+            sequence="2"/>
+    </data>
+</odoo>

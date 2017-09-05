@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_crm_claim_lines_filter" model="ir.ui.view">
+        <field name="name">CRM - Claims Search</field>
+        <field name="model">claim.line</field>
+        <field name="arch" type="xml">
+
+            <search string="Search Claims">
+                <filter icon="terp-check" string="Current" name="current"
+                        domain="[('state','in',('draft', 'refused', 'treated'))]"
+                        separator="1" help="Draft and Open Claims"/>
+                <filter icon="terp-camera_test"
+                        string="In Progress"
+                        domain="[('state','in',('confirmed','in_to_control','in_to_treate'))]"
+                        separator="1" help="In Progress Claims"/>
+                <separator orientation="vertical"/>
+                <field name="number"/>
+                <field name="state" select='1'/>
+                <field name="substate_id" select='1'/>
+                <field name="name" select='1'/>
+                <field name= 'invoice_number'/>
+                <field name="product_id" select='1'/>
+                <field name="prodlot_id" select='1'/>
+                <field name="move_in_id"/>
+                <newline/>
+                <group expand="0" string="More">
+                    <field name="last_state_change" select='1'/>
+                    <field name="return_value" select='1'/>
+                    <field name="name" select='1'/>
+                </group>
+                <newline/>
+                <group expand="0" string="Group By...">
+                    <filter string="Invoice" icon="terp-dolar"
+                            domain="[]" help="Invoice"
+                            context="{'group_by':'invoice_id'}"/>
+
+                    <filter string="Product" icon="terp-product"
+                            domain="[]" help="Product"
+                            context="{'group_by':'product_id'}"/>
+                    <separator orientation="vertical"/>
+
+                    <filter string="Substate" icon="terp-stage"
+                            domain="[]" context="{'group_by':'substate_id'}"/>
+
+                    <filter string="Claim n°" icon="terp-emblem-documents"
+                            domain="[]" context="{'group_by':'claim_id'}"/>
+
+                    <filter string="Priority"
+                            name="group_by_priority"
+                            domain="[]"
+                            context="{'group_by':'priority'}"
+                            help="Priority"/>
+
+                    <filter string="State"
+                            name="group_by_state"
+                            domain="[]"
+                            context="{'group_by':'state'}"
+                            help="Grouping by state"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="crm_claim_line_tree_view">
+        <field name="name">CRM - Claims Tree</field>
+        <field name="model">claim.line</field>
+        <field name="arch" type="xml">
+            <tree string="Claim lines">
+                <field name="claim_id" invisible="1"/>
+                <field name="number"/>
+                <field name="state"/>
+                 <field name="name"/>
+
+                <field name="priority"/>
+                <field name='responsible' colspan="6"/>
+
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="crm_claim_line_form_view">
+        <field name="name">CRM - Claim product return line Form</field>
+        <field name="model">claim.line</field>
+        <field name="arch" type="xml">
+            <form string="Claim Line" version="7.0">
+                <header>
+
+                    <button name="state_pending" string="Pending" type="object" class="oe_highlight"/>
+                    <button name="state_refused" string="Refused" type="object" class="oe_highlight"/>
+                    <button name="state_approved" string="Approved" type="object" class="oe_highlight"/>
+                    
+                    <field name="state"
+                           widget="statusbar"/>
+                </header>
+                <sheet string="Claims">
+                    <div class="oe_title" colspan="4">
+                        <group>
+                            <h1>
+                                <field name="number" class="oe_inline"/>
+                            </h1>
+                        </group>
+                    </div>
+                    <separator string="Problem" colspan="4"/>
+                    <group col="6" colspan="4">
+                        <field name ='customer' colspan="6"/>
+                        <field name="name" colspan="6"/>
+                        <field name="prodlot_id" colspan="6"/>
+                        <field name="claim_origin" colspan="6"/>
+                        <field name="claim_diagnosis" colspan="6"/>
+                        <field name="responsible" colspan="6" />
+                        <field name="priority" colspan="6"/>
+                        
+
+                        <field name="product_returned_quantity" invisible="1"/>
+                        <field name="unit_sale_price"/>
+                        <field name="return_value"/>
+
+
+                    </group>
+                        <group>
+
+                        <group string="Linked Document">
+                            <field name='invoice_number' domain="[('partner_id','=',customer)]" options="{'no_create':1, 'no_create_edit':1}"/>
+
+                        </group> 
+                    <separator string="State" colspan="4"/>
+                    <group col="6" colspan="4">
+                        <field name="substate_id" widget='selection'/>
+                        <field name="last_state_change"/>
+                    </group>
+                </group>
+                <group>
+                        <field name='product_lines' nolabel="1" options="{'no_create':1, 'no_create_edit':1}">
+                        <tree name='product_lines' options="{'no_create':1, 'no_create_edit':1}" decoration-danger="warranty&lt;0" decoration-success="warranty&gt;0">
+                            <field name='product_id'/>
+                            <field name='quantity'/>
+                            <field name='price_unit'/>
+                            <field name='name'/>
+                            <field name='invoice_line_tax_ids'/>
+                            <field name='account_id' required="False" nolabel="1" invisible="1"/>
+                            <field name='warranty' />
+
+                        </tree>
+                        <form string="Product Details">
+                            <sheet>
+                            <group>
+                            <field name='product_id'/>
+                            <field name='quantity'/>
+                            <field name='price_unit'/>
+                            <field name='name'/>
+                            <field name='invoice_line_tax_ids'/>
+                            <field name='warranty' options="{'no_create_edit':0}" />
+                            </group>
+                        </sheet>
+                        </form>
+
+                    </field>
+                </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Claim lines action -->
+    <record model="ir.actions.act_window" id="act_crm_case_claim_lines">
+        <field name="name">Claim lines</field>
+        <field name="res_model">claim.line</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="crm_claim_line_tree_view"/>
+        <field name="search_view_id" ref="view_crm_claim_lines_filter"/>
+        <field name="context">{'search_default_group_by_priority': True,
+            'search_default_group_by_state': True}
+        </field>
+    </record>
+
+    <!-- Menu -->
+    <menuitem id="menu_claim" name="Claims"
+                 parent="sales_team.menu_base_partner" sequence="5"/>
+    <menuitem
+            name="Claim lines"
+            id="menu_crm_case_claims_claim_lines"
+            parent="menu_claim"
+            action="act_crm_case_claim_lines"
+            sequence="2"/>
+</odoo>
